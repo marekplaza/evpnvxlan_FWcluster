@@ -349,48 +349,6 @@ spine1#
 ```
 
 
-### Lab Requirements
-
-A machine with Docker CE or Docker Desktop is required.
-Following operating systems were tested:
-
- - The lab is expected to run on any major Linux distribution with Docker installed
- - Hardware requirements depend on the number of containers deployed. For toplogies  of 10+ cEOS containers 8 vCPUs and 16 GB RAM are recommended.
- - cEOS image. Go to section [Download cEOS image](#Download-cEOS-image) to find out how to do it
-
-> **WARNING**: Please make sure that your host has enough resorces. Otherwise Containerlab can enter "frozen" state and require Docker / host restart.
-
-To install Docker on a Linux machine, please check [this guide](https://docs.docker.com/engine/install).
-
-
-
-## Download cEOS image
-
-Please remember to download Arista cEOS image and import it to your local docker images repository. You need to have account on arista.com site. The most convient way is to install using... Yes, you are right! We surely use a dockeraized downloader. Firstly, please generate Download Token on your Arista account and export it as env variable `$ARISTA_TOKEN`, then use eos-downlader [eos-downlader](https://github.com/titom73/eos-downloader), as presented below:
-
-```bash
-[ ApiusLAB 🧪 ] # ardl --token $ARISTA_TOKEN get eos --image-type cEOS64 --release-type M --latest --log-level debug --output ./
-🪐 eos-downloader is starting...
-    - Image Type: cEOS64
-    - Version: None
-🔎  Searching file cEOS64-lab-4.30.4M.tar.xz
-    -> Found file at /support/download/EOS-USA/Active Releases/4.30/EOS-4.30.4M/cEOS-lab/cEOS64-lab-4.30.4M.tar.xz
-💾  Downloading cEOS64-lab-4.30.4M.tar.xz ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • 11.6 MB/s • 571.8/571.8 MB • 0:00:42 •
-🚀  Running checksum validation
-🔎  Searching file cEOS64-lab-4.30.4M.tar.xz.sha512sum
-    -> Found file at /support/download/EOS-USA/Active Releases/4.30/EOS-4.30.4M/cEOS-lab/cEOS64-lab-4.30.4M.tar.xz.sha512sum
-💾  Downloading cEOS64-lab-4.30.4M.tar.xz.sha512sum ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • ? • 155/155 bytes • 0:00:00 •
-✅  Downloaded file is correct.
-✅  processing done !
-```
-
-And import it:
-
-```
-[ ApiusLAB 🧪 ] # docker import cEOS64-lab-4.30.4M.tar.xz ceos64:4.30.4M
-sha256:488618b63f2c075496655babfea48341045bdfed3871ccd96af1ac38189bab7d
-```
-
 
 ## How to start a lab in your home
 
@@ -424,3 +382,47 @@ INFO[0000] Parsing & checking topology file: avd_lab.clab.yml
 | 6 | clab-avd_lab-spine2 | 7d78a4b222f9 | ceos64:4.30.4M | ceos | running | 192.168.123.12/24  | N/A          |
 +---+---------------------+--------------+----------------+------+---------+--------------------+--------------+
 ```
+
+#### Lab Requirements
+
+A machine with Docker CE or Docker Desktop is required.
+Following operating systems were tested:
+
+ - The lab is expected to run on any major Linux distribution with Docker installed
+ - Hardware requirements depend on the number of containers deployed. For toplogies  of 10+ cEOS containers 8 vCPUs and 16 GB RAM are recommended.
+ - cEOS image. Go to section [Download cEOS image](#Download-cEOS-image) to find out how to do it
+
+> **WARNING**: Please make sure that your host has enough resorces. Otherwise Containerlab can enter "frozen" state and require Docker / host restart.
+
+To install Docker on a Linux machine, please check [this guide](https://docs.docker.com/engine/install).
+
+
+
+## Download cEOS image
+
+Please remember to download Arista cEOS image and import it to your local docker images repository. You need to have account on arista.com site. The most convient way is to install using... Yes, you are right! We surely use a dockeraized downloader. Firstly, please generate Download Token on your Arista account and export it as env variable `$ARISTA_TOKEN`, then use eos-downlader [eos-downlader](https://github.com/titom73/eos-downloader), as presented below:
+
+```bash
+[ ApiusLAB 🧪 ] # ardl --token $ARISTA_TOKEN get eos --image-type cEOS64 --release-type M --latest --log-level debug --output ./
+🪐 eos-downloader is starting...
+    - Image Type: cEOS64
+    - Version: None
+🔎  Searching file cEOS64-lab-4.30.4M.tar.xz
+    -> Found file at /support/download/EOS-USA/Active Releases/4.30/EOS-4.30.4M/cEOS-lab/cEOS64-lab-4.30.4M.tar.xz
+��  Downloading cEOS64-lab-4.30.4M.tar.xz ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • 11.6 MB/s • 571.8/571.8 MB • 0:00:42 •
+🚀  Running checksum validation
+🔎  Searching file cEOS64-lab-4.30.4M.tar.xz.sha512sum
+    -> Found file at /support/download/EOS-USA/Active Releases/4.30/EOS-4.30.4M/cEOS-lab/cEOS64-lab-4.30.4M.tar.xz.sha512sum
+💾  Downloading cEOS64-lab-4.30.4M.tar.xz.sha512sum ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • ? • 155/155 bytes • 0:00:00 •
+✅  Downloaded file is correct.
+✅  processing done !
+```
+
+And import it:
+
+```
+[ ApiusLAB 🧪 ] # docker import cEOS64-lab-4.30.4M.tar.xz ceos64:4.30.4M
+sha256:488618b63f2c075496655babfea48341045bdfed3871ccd96af1ac38189bab7d
+```
+
+
