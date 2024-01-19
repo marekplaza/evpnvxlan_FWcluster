@@ -4,58 +4,19 @@
 ## Getting Started
 
   - [Overview](#overview)
-  - [Lab Requirements](#lab-requirements)
   - [Lab Topology](#lab-topology)
-  - [How To Use Start](#how-to-start)
   - [Devices Configs](#devices-configs)
+  - [Start the Lab](#start-the-lab)
   - [Results](#Results)
+
+  Appendix:
+
+  - [How to start a lab in your home](#How-to-start-a-lab-in-your-home)
+
 
 ### Overview
 
 The primary goal of this repository is to simulate setup with Firewall Cluster geo-stretched, connected to two separated VTEPs, i.e. localized in separate DC1 & DC2. Lab is using **[Containerlab](https://containerlab.srlinux.dev/)** and cEOS, a containerized version of Arista's EOS software. This setup, which can be brought to life on any machine equipped with Docker, takes only a few minutes. It serves as a valuable resource for learning, testing various Arista EOS features, and in some cases, even for crafting configurations suitable for production environments, OFC with the limitation to hardware-specific features.
-
-
-### Lab Requirements
-
-A machine with Docker CE or Docker Desktop is required.
-Following operating systems were tested:
-
- - The lab is expected to run on any major Linux distribution with Docker installed
- - Hardware requirements depend on the number of containers deployed. For toplogies  of 10+ cEOS containers 8 vCPUs and 16 GB RAM are recommended.
- - cEOS image. Go to section [Download cEOS image](#Download-cEOS-image) to find out how to do it
-
-> **WARNING**: Please make sure that your host has enough resorces. Otherwise Containerlab can enter "frozen" state and require Docker / host restart.
-
-To install Docker on a Linux machine, please check [this guide](https://docs.docker.com/engine/install).
-
-
-
-## Download cEOS image
-
-Please remember to download Arista cEOS image and import it to your local docker images repository. You need to have account on arista.com site. The most convient way is to install using... Yes, you are right! We surely use a dockeraized downloader. Firstly, please generate Download Token on your Arista account and export it as env variable `$ARISTA_TOKEN`, then use eos-downlader [eos-downlader](https://github.com/titom73/eos-downloader), as presented below:
-
-```bash
-[ ApiusLAB 🧪 ] # ardl --token $ARISTA_TOKEN get eos --image-type cEOS64 --release-type M --latest --log-level debug --output ./
-🪐 eos-downloader is starting...
-    - Image Type: cEOS64
-    - Version: None
-🔎  Searching file cEOS64-lab-4.30.4M.tar.xz
-    -> Found file at /support/download/EOS-USA/Active Releases/4.30/EOS-4.30.4M/cEOS-lab/cEOS64-lab-4.30.4M.tar.xz
-💾  Downloading cEOS64-lab-4.30.4M.tar.xz ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • 11.6 MB/s • 571.8/571.8 MB • 0:00:42 •
-🚀  Running checksum validation
-🔎  Searching file cEOS64-lab-4.30.4M.tar.xz.sha512sum
-    -> Found file at /support/download/EOS-USA/Active Releases/4.30/EOS-4.30.4M/cEOS-lab/cEOS64-lab-4.30.4M.tar.xz.sha512sum
-💾  Downloading cEOS64-lab-4.30.4M.tar.xz.sha512sum ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • ? • 155/155 bytes • 0:00:00 •
-✅  Downloaded file is correct.
-✅  processing done !
-```
-
-And import it:
-
-```
-[ ApiusLAB 🧪 ] # docker import cEOS64-lab-4.30.4M.tar.xz ceos64:4.30.4M
-sha256:488618b63f2c075496655babfea48341045bdfed3871ccd96af1ac38189bab7d
-```
 
 ### Lab Topology
 The lab setup diagram:
@@ -64,80 +25,7 @@ The lab setup diagram:
 
 In this setup, we have the most basic S&L topology consisting of two distinct ToR VTEPs: LEAF1 and LEAF3, along with a single spine switch: SPINE1. Attached to these leaf switches are two host machines that simulate collectively as a single logical device, floating IP based on VRRP. These hosts form an quasi HA FW cluster, operating in Active/Standby mode and are geographically distributed across two data centers. The goal is to evaluate impact that a master switch-over might have on EVPN-VxLAN resilience time. Additionally, we aim to explore the distribution of a static route, which targets floating IP addresses on the active FW node, downside the EVPN-VxLAN topology.
 
-## How To Start
 
-Deploy a gien topology using container lab docker image with additional parameters which makes it writeable to local volumen and accessible over the host network.
-
-```bash
-docker run --rm -it --privileged \
-    --network host \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -v /var/run/netns:/var/run/netns \
-    -v /etc/hosts:/etc/hosts \
-    -v /var/lib/docker/containers:/var/lib/docker/containers \
-    --pid="host" \
-    -v $(pwd):$(pwd) \
-    -w $(pwd) \
-    ghcr.io/srl-labs/clab deploy -t clab.yml
-```
-
-'clab.yml' file consits a topology/lab definition in yaml format and scheme readlable for containerlab:
-
-```bash
-name: evpn_vxlan_fw
-
-mgmt:
-  network: custom_mgmt
-  ipv4-subnet: 192.168.123.0/24
-  ipv4-gw: 192.168.123.1
-  external-access: true
-
-topology:
-  kinds:
-    ceos:
-      image: ceos64:4.30.4M
-  defaults:
-    kind: ceos
-  nodes:
-    spine1:
-      mgmt-ipv4: 192.168.123.11
-      startup-config: init-configs/spine1.cfg
-    leaf1:
-      mgmt-ipv4: 192.168.123.21
-      startup-config: init-configs/leaf1.cfg
-    leaf3:
-      mgmt-ipv4: 192.168.123.23
-      startup-config: init-configs/leaf3.cfg
-    host11:
-      mgmt-ipv4: 192.168.123.111
-      startup-config: init-configs/host11.cfg
-    host21:
-      mgmt-ipv4: 192.168.123.121
-      startup-config: init-configs/host21.cfg
-
-  links:
-  - endpoints: ["spine1:eth1_1", "leaf1:eth49_1"]
-  - endpoints: ["spine1:eth3_1", "leaf3:eth49_1"]
-  - endpoints: ["host11:eth1", "leaf1:eth1_1"]
-  - endpoints: ["host21:eth1", "leaf3:eth1_1"]
-  - endpoints: ["host11:eth5", "host21:eth5"]
-```
-
-Finally you should see a inspection output as follows:
-
-```bash
-INFO[0000] Parsing & checking topology file: avd_lab.clab.yml 
-+---+---------------------+--------------+----------------+------+---------+--------------------+--------------+
-| # |        Name         | Container ID |     Image      | Kind |  State  |    IPv4 Address    | IPv6 Address |
-+---+---------------------+--------------+----------------+------+---------+--------------------+--------------+
-| 1 | clab-avd_lab-host11 | 48f4bcb376b7 | ceos64:4.30.4M | ceos | running | 192.168.123.111/24 | N/A          |
-| 2 | clab-avd_lab-host21 | ef2f6399c5bf | ceos64:4.30.4M | ceos | running | 192.168.123.121/24 | N/A          |
-| 3 | clab-avd_lab-leaf1  | d265eb48f894 | ceos64:4.30.4M | ceos | running | 192.168.123.21/24  | N/A          |
-| 4 | clab-avd_lab-leaf3  | c96bf02522fe | ceos64:4.30.4M | ceos | running | 192.168.123.23/24  | N/A          |
-| 5 | clab-avd_lab-spine1 | 184cf066ba96 | ceos64:4.30.4M | ceos | running | 192.168.123.11/24  | N/A          |
-| 6 | clab-avd_lab-spine2 | 7d78a4b222f9 | ceos64:4.30.4M | ceos | running | 192.168.123.12/24  | N/A          |
-+---+---------------------+--------------+----------------+------+---------+--------------------+--------------+
-```
 ### Devices configs
 
 EVPN-VxLAN configuration based on OSPF, flat Area 0 as UNDERLAY LAYER routing protocol, (similar configuration for LEAF1, LEAF3 and SPINE1)
@@ -218,7 +106,7 @@ router general
 !
 ```
 
-## How To Start
+## Start the Lab
 
 Let's find out how it works:
 
@@ -458,4 +346,81 @@ The result on SPINE1 is very promissing. We lost only 1 ping!
 158 packets transmitted, 157 received, 0.632911% packet loss, time 3964ms
 rtt min/avg/max/mdev = 5.026/21.208/85.098/13.112 ms, pipe 3, ipg/ewma 25.246/18.087 ms
 spine1#
+```
+
+
+### Lab Requirements
+
+A machine with Docker CE or Docker Desktop is required.
+Following operating systems were tested:
+
+ - The lab is expected to run on any major Linux distribution with Docker installed
+ - Hardware requirements depend on the number of containers deployed. For toplogies  of 10+ cEOS containers 8 vCPUs and 16 GB RAM are recommended.
+ - cEOS image. Go to section [Download cEOS image](#Download-cEOS-image) to find out how to do it
+
+> **WARNING**: Please make sure that your host has enough resorces. Otherwise Containerlab can enter "frozen" state and require Docker / host restart.
+
+To install Docker on a Linux machine, please check [this guide](https://docs.docker.com/engine/install).
+
+
+
+## Download cEOS image
+
+Please remember to download Arista cEOS image and import it to your local docker images repository. You need to have account on arista.com site. The most convient way is to install using... Yes, you are right! We surely use a dockeraized downloader. Firstly, please generate Download Token on your Arista account and export it as env variable `$ARISTA_TOKEN`, then use eos-downlader [eos-downlader](https://github.com/titom73/eos-downloader), as presented below:
+
+```bash
+[ ApiusLAB 🧪 ] # ardl --token $ARISTA_TOKEN get eos --image-type cEOS64 --release-type M --latest --log-level debug --output ./
+🪐 eos-downloader is starting...
+    - Image Type: cEOS64
+    - Version: None
+🔎  Searching file cEOS64-lab-4.30.4M.tar.xz
+    -> Found file at /support/download/EOS-USA/Active Releases/4.30/EOS-4.30.4M/cEOS-lab/cEOS64-lab-4.30.4M.tar.xz
+💾  Downloading cEOS64-lab-4.30.4M.tar.xz ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • 11.6 MB/s • 571.8/571.8 MB • 0:00:42 •
+🚀  Running checksum validation
+🔎  Searching file cEOS64-lab-4.30.4M.tar.xz.sha512sum
+    -> Found file at /support/download/EOS-USA/Active Releases/4.30/EOS-4.30.4M/cEOS-lab/cEOS64-lab-4.30.4M.tar.xz.sha512sum
+💾  Downloading cEOS64-lab-4.30.4M.tar.xz.sha512sum ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • ? • 155/155 bytes • 0:00:00 •
+✅  Downloaded file is correct.
+✅  processing done !
+```
+
+And import it:
+
+```
+[ ApiusLAB 🧪 ] # docker import cEOS64-lab-4.30.4M.tar.xz ceos64:4.30.4M
+sha256:488618b63f2c075496655babfea48341045bdfed3871ccd96af1ac38189bab7d
+```
+
+
+## How to start a lab in your home
+
+Deploy a demo topology using container lab docker image with additional parameters which makes it writeable to local volumen and accessible over the host network.
+
+```bash
+docker run --rm -it --privileged \
+    --network host \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v /var/run/netns:/var/run/netns \
+    -v /etc/hosts:/etc/hosts \
+    -v /var/lib/docker/containers:/var/lib/docker/containers \
+    --pid="host" \
+    -v $(pwd):$(pwd) \
+    -w $(pwd) \
+    ghcr.io/srl-labs/clab deploy -t clab.yml
+```
+
+Finally you should see a inspection output as follows:
+
+```bash
+INFO[0000] Parsing & checking topology file: avd_lab.clab.yml 
++---+---------------------+--------------+----------------+------+---------+--------------------+--------------+
+| # |        Name         | Container ID |     Image      | Kind |  State  |    IPv4 Address    | IPv6 Address |
++---+---------------------+--------------+----------------+------+---------+--------------------+--------------+
+| 1 | clab-avd_lab-host11 | 48f4bcb376b7 | ceos64:4.30.4M | ceos | running | 192.168.123.111/24 | N/A          |
+| 2 | clab-avd_lab-host21 | ef2f6399c5bf | ceos64:4.30.4M | ceos | running | 192.168.123.121/24 | N/A          |
+| 3 | clab-avd_lab-leaf1  | d265eb48f894 | ceos64:4.30.4M | ceos | running | 192.168.123.21/24  | N/A          |
+| 4 | clab-avd_lab-leaf3  | c96bf02522fe | ceos64:4.30.4M | ceos | running | 192.168.123.23/24  | N/A          |
+| 5 | clab-avd_lab-spine1 | 184cf066ba96 | ceos64:4.30.4M | ceos | running | 192.168.123.11/24  | N/A          |
+| 6 | clab-avd_lab-spine2 | 7d78a4b222f9 | ceos64:4.30.4M | ceos | running | 192.168.123.12/24  | N/A          |
++---+---------------------+--------------+----------------+------+---------+--------------------+--------------+
 ```
