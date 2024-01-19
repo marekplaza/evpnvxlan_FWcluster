@@ -1,0 +1,37 @@
+name: evpn_vxlan_fw
+
+mgmt:
+  network: custom_mgmt
+  ipv4-subnet: 192.168.123.0/24
+  ipv4-gw: 192.168.123.1
+  external-access: true
+
+topology:
+  kinds:
+    ceos:
+      image: ceos64:4.30.4M
+  defaults:
+    kind: ceos
+  nodes:
+    spine1:
+      mgmt-ipv4: 192.168.123.11
+      startup-config: init-configs/spine1.cfg
+    leaf1:
+      mgmt-ipv4: 192.168.123.21
+      startup-config: init-configs/leaf1.cfg
+    leaf3:
+      mgmt-ipv4: 192.168.123.23
+      startup-config: init-configs/leaf3.cfg
+    host11:
+      mgmt-ipv4: 192.168.123.111
+      startup-config: init-configs/host11.cfg
+    host21:
+      mgmt-ipv4: 192.168.123.121
+      startup-config: init-configs/host21.cfg
+
+  links:
+  - endpoints: ["spine1:eth1_1", "leaf1:eth49_1"]
+  - endpoints: ["spine1:eth3_1", "leaf3:eth49_1"]
+  - endpoints: ["host11:eth1", "leaf1:eth1_1"]
+  - endpoints: ["host21:eth1", "leaf3:eth1_1"]
+  - endpoints: ["host11:eth5", "host21:eth5"]
