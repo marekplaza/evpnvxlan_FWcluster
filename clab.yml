@@ -1,7 +1,7 @@
 name: evpn_vxlan_fw
 
 mgmt:
-  network: custom_mgmt
+  network: fwmgmt
   ipv4-subnet: 192.168.123.0/24
   ipv4-gw: 192.168.123.1
   external-access: true
